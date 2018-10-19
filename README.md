@@ -130,3 +130,63 @@ gradle webpack --build-cache
 ```
 
 来回修改内容，发现后面没有重新构建。
+
+## 编写自定义任务
+
+创建任务并添加一个 action 输出到控制台。
+
+```gradle
+task hello { 
+    doLast { 
+        println 'Hello, World!'
+    }
+}
+```
+
+`gradle tasks --all` 列出可用的任务。
+
+`gradle hello` 执行任务
+
+### 添加分组和任务描述
+
+```gradle
+task hello {
++   group 'Welcome'
++   description 'Produces a greeting'
+
+    doLast {
+        println 'Hello, World'
+    }
+}
+```
+
+### 使信息可配置
+
+在构建脚本中创建一个类。
+
+```gradle
+class Greeting extends DefaultTask { // 1,2
+    String message //3
+    String recipient
+
+    @TaskAction // 4
+    void sayGreeting() {
+        println "${message}, ${recipient}!" // 5
+    }
+}
+
+task hello(type: Greeting) { // 6
+    group 'Welcome'
+    description 'Produces a world greeting'
+    message 'Hello' // 7
+    recipient 'World'
+}
+```
+
+1. 由于build.gradle 文件中的构建 DSL 是基于Groovy DSL，因此该类将是 Groovy 类。
+2. 虽然 Gradle API 中的其他任务类可以在特定情况下使用，但继承 `{javadoc} /org/gradle/api/DefaultTask.html[DefaultTask]` 是最常见的情况。
+3. 添加 `message` 和 `recipient` 属性使此自定义任务类型的实例可配置。
+4. 任务默认操作注解。
+5. 使用 Groovy 字符串模板打印消息。
+6. 通过引用上面定义的 `Greeting` 类指定任务类型。
+7. 配置属性。
