@@ -105,7 +105,7 @@ task webpack(type: Exec) {
 从Gradle 4.0开始，Gradle 可以通过构建缓存避免已经在不同的 VCS 分支上或由其他机器完成的工作。
 
 1. 使 webpack 任务可缓存
-```gradle
+```diff
 task webpack(type: Exec) {
 -   inputs.file("package-lock.json")
 -   inputs.dir("app")
@@ -149,7 +149,7 @@ task hello {
 
 ### 添加分组和任务描述
 
-```gradle
+```diff
 task hello {
 +   group 'Welcome'
 +   description 'Produces a greeting'
