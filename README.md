@@ -76,3 +76,57 @@ dependencies {
     testCompile 'org.seleniumhq.selenium:selenium-java:3.3.1' 
 }
 ```
+
+## 执行 Webpack
+
+通过 [Exec](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.Exec.html) 任务可以执行命令行工具。
+
+```gradle
+task webpack(type: Exec) { 
+    commandLine "$projectDir/node_modules/.bin/webpack", "app/index.js", "$buildDir/js/bundle.js"
+}
+```
+
+通过 [up-to-date checks](https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks) 增量构建，内容没有修改时不重新构建。
+必须指定任务的输入和输出。
+```gradle
+task webpack(type: Exec) {
+    inputs.file("package-lock.json")
+    inputs.dir("app")
+    // NOTE: Add inputs.file("webpack.config.js") for projects that have it
+    outputs.dir("$buildDir/js")
+
+    commandLine "$projectDir/node_modules/.bin/webpack", "app/index.js", "$buildDir/js/bundle.js"
+}
+```
+
+### 构建缓存
+
+从Gradle 4.0开始，Gradle 可以通过构建缓存避免已经在不同的 VCS 分支上或由其他机器完成的工作。
+
+1. 使 webpack 任务可缓存
+```gradle
+task webpack(type: Exec) {
+-   inputs.file("package-lock.json")
+-   inputs.dir("app")
++   inputs.file("package-lock.json").withPathSensitivity(PathSensitivity.RELATIVE)  // a
++   inputs.dir("app").withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.dir("$buildDir/js")
++   outputs.cacheIf { true } // b
+
+    commandLine "$projectDir/node_modules/.bin/webpack", "app/index.js", "$buildDir/js/bundle.js"
+}
+```
+
+a. 声明 package-lock.json 和 app 是可重定位的，[了解详情](https://guides.gradle.org/using-build-cache/#relocatability)。
+b. 告诉 Gradle 如果构建缓存可用，则始终缓存此任务的输出。
+
+强烈建议在编写可缓存的任务时使用[自定义任务类](https://docs.gradle.org/current/userguide/custom_tasks.html)。
+
+2. 使用缓存 
+
+```bash
+gradle webpack --build-cache
+```
+
+来回修改内容，发现后面没有重新构建。
