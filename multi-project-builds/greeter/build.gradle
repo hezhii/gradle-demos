@@ -1,0 +1,20 @@
+plugins {
+    id 'application'
+}
+
+mainClassName = 'greeter.Greeter'
+
+dependencies {
+    compile project(':greeting-library')
+}
+
+distZip {
+    from project(':docs').asciidoctor, {
+        into "${project.name}-${version}"
+    }
+}
+distTar {
+    from project(':docs').asciidoctor, {
+        into "${project.name}-${version}"
+    }
+}

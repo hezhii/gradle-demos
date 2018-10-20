@@ -1,0 +1,13 @@
+plugins {
+    id 'org.asciidoctor.convert'
+}
+
+asciidoctor {
+    sources {
+        // 告诉插件在默认的源文件夹 `src/docs/asciidoc`中查找名为 `greeter.adoc` 的文档
+        include 'greeter.adoc'
+    }
+}
+
+// 将 asciidoctor 任务添加到构建生命周期中，如果为顶级项目执行构建，那么也将构建文档。
+build.dependsOn 'asciidoctor'

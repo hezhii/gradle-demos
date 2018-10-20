@@ -190,3 +190,58 @@ task hello(type: Greeting) { // 6
 5. 使用 Groovy 字符串模板打印消息。
 6. 通过引用上面定义的 `Greeting` 类指定任务类型。
 7. 配置属性。
+
+## 多项目构建
+
+在多项目中，可以使用顶级构建脚本（也称为根项目）添加各项目通用配置，子项目只需要自定义所需配置。
+
+`allprojects` 中的配置会作用自己和所有子项目，`subprojects` 只作用于子项目，可以使用多次。
+
+[Application 插件](https://docs.gradle.org/4.10-rc-2/userguide/application_plugin.html)可以将所有应用程序 JAR 并递归地将它们的所有依赖打包到单个 ZIP 或 TAR 文件中。
+它还将向压缩包中添加两个启动脚本（一个用于类 UNIX 操作系统，一个用于 Windows），以便用户轻松运行应用程序。
+
+`mainClassName` 属性指明入口 `main` 函数。
+
+使用 `project(NAME)` 语法将一个子项目添加到另一个子项目的依赖项中。
+
+Spock Framework 也是一个测试框架，`groovy` 插件包含 `java` 插件。
+
+`:SUBPROJECT:TASK` 可以执行任何一个子项目中的任何任务。`./gradlew :greeter:test` 只执行 `greeter` 项目中的 `test` 任务。
+
+[Asciidoctor](http://asciidoctor.org/) 工具可以用来生成文档，可以使用 Gradle 插件。
+```groovy
+plugins {
+    id 'org.asciidoctor.convert' version '1.5.6' apply false
+}
+```
+
+`apply false` 将插件添加到除根项目之外的所有项目。配置如下：
+```groovy
+plugins {
+    id 'org.asciidoctor.convert'
+}
+
+asciidoctor {
+    sources {
+        // 告诉插件在默认的源文件夹 `src/docs/asciidoc`中查找名为 `greeter.adoc` 的文档
+        include 'greeter.adoc'
+    }
+}
+
+// 将 asciidoctor 任务添加到构建生命周期中，如果为顶级项目执行构建，那么也将构建文档。
+build.dependsOn 'asciidoctor'
+```
+
+Gradle 可以提取通用配置。
+```groovy
+configure(subprojects.findAll { it.name == 'greeter' || it.name == 'greeting-library' }) { 
+
+    apply plugin: 'groovy'
+
+    dependencies {
+        testCompile 'org.spockframework:spock-core:1.0-groovy-2.4', {
+            exclude module: 'groovy-all'
+        }
+    }
+}
+```
